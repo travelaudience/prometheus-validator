@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -150,7 +149,6 @@ func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]
 
 func main() {
 	var noPlaybookAlerts []AlertRule
-	fmt.Println(os.Getenv("PROMETHEUS_RULES_API_URL"))
 	go recordMetrics(1, os.Getenv("PROMETHEUS_RULES_API_URL"), &noPlaybookAlerts)
 	r := prometheus.NewRegistry()
 	r.MustRegister(alertsNoPlaybook)
