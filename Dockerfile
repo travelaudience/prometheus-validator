@@ -9,6 +9,8 @@ RUN CGO_ENABLED=0 GOOS=linux  go build -o util ./util
 
 FROM busybox:1.31.1
 
+EXPOSE 8080
+
 
 COPY --from=build /go/src/github.com/travelaudience/prometheus-validator/util /
 

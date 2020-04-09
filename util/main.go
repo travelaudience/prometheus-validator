@@ -172,5 +172,5 @@ func main() {
 	http.Handle("/err", promhttp.InstrumentHandlerCounter(httpRequestsTotal, notfoundHandler))
 
 	http.Handle("/metrics", promhttp.HandlerFor(r, promhttp.HandlerOpts{}))
-	log.Fatal(http.ListenAndServe(":2112", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
