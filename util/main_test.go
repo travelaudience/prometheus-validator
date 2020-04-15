@@ -28,17 +28,10 @@ func Test_recordMetrics(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{name: "invalid-interval",
-			args: args{
-				queryInterval:    1,
-				url:              "http://localhost:8080/api/v1/rules?type=alert",
-				noPlaybookAlerts: &[]AlertRule{},
-			},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// recordMetrics(tt.args.queryInterval, tt.args.url, tt.args.noPlaybookAlerts)
+			recordMetrics(tt.args.queryInterval, tt.args.url, tt.args.noPlaybookAlerts)
 		})
 	}
 }
