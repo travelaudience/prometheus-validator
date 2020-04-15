@@ -86,19 +86,19 @@ func apiGet(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
-		return nil, err
+		return []byte{}, err
 	}
 	req.Header.Set("Accept", "application/json")
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return nil, err
+		return []byte{}, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return []byte{}, err
 	}
 
 	return body, nil
@@ -110,16 +110,12 @@ func clear(v interface{}) {
 	p.Set(reflect.Zero(p.Type()))
 }
 
-func checkAlerts(url string, noPlaybookAlerts *[]AlertRule) []AlertRule {
+func checkAlerts(apiResp []byte, noPlaybookAlerts *[]AlertRule) error {
 	clear(noPlaybookAlerts)
 	alertrules := AlertRuleApiResponse{}
-	apiResp, err := apiGet(url)
+	err := json.Unmarshal(apiResp, &alertrules)
 	if err != nil {
-		log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
-	}
-	err = json.Unmarshal(apiResp, &alertrules)
-	if err != nil {
-		log.Fatalf("Couldn't marshel the json . %v", err)
+		return err
 	}
 
 	for _, group := range alertrules.Data.Groups {
@@ -130,17 +126,28 @@ func checkAlerts(url string, noPlaybookAlerts *[]AlertRule) []AlertRule {
 			}
 		}
 	}
-	return *noPlaybookAlerts
+	return nil
 }
 
 func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]AlertRule) {
-	checkAlerts(url, noPlaybookAlerts)
+	apiResp, err := apiGet(url)
+	if err != nil {
+		log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
+	}
+	err = checkAlerts(apiResp, noPlaybookAlerts)
+	if err != nil {
+		log.Fatalf("Couldn't marshel the json . %v", err)
+	}
 	for _, alert := range *noPlaybookAlerts {
 		alertsNoPlaybook.With(prometheus.Labels{"alert": alert.Name, "owner": alert.Labels.Owner}).Set(1)
 	}
 	ticker := time.NewTicker(queryInterval * time.Minute)
 	for range ticker.C {
-		checkAlerts(url, noPlaybookAlerts)
+		apiResp, err := apiGet(url)
+		if err != nil {
+			log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
+		}
+		err = checkAlerts(apiResp, noPlaybookAlerts)
 		for _, alert := range *noPlaybookAlerts {
 			alertsNoPlaybook.With(prometheus.Labels{"alert": alert.Name, "owner": alert.Labels.Owner}).Set(1)
 		}
