@@ -162,7 +162,7 @@ func main() {
 	client := &MyHTTPClient{
 		&http.Client{},
 	}
-	go recordMetrics(1, os.Getenv("PROMETHEUS_RULES_API_URL"), &noPlaybookAlerts, client)
+	go recordMetrics(1, os.Getenv("PROMETHEUS_URL")+"/api/v1/rules?type=alert", &noPlaybookAlerts, client)
 	r := prometheus.NewRegistry()
 	r.MustRegister(alertsNoPlaybook)
 	r.MustRegister(httpRequestsTotal)
