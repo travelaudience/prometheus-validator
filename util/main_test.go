@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"reflect"
 	"testing"
 	"time"
@@ -22,6 +23,7 @@ func Test_recordMetrics(t *testing.T) {
 		queryInterval    time.Duration
 		url              string
 		noPlaybookAlerts *[]AlertRule
+		client           *MyHTTPClient
 	}
 	tests := []struct {
 		name string
@@ -31,7 +33,7 @@ func Test_recordMetrics(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recordMetrics(tt.args.queryInterval, tt.args.url, tt.args.noPlaybookAlerts)
+			recordMetrics(tt.args.queryInterval, tt.args.url, tt.args.noPlaybookAlerts, tt.args.client)
 		})
 	}
 }
@@ -65,7 +67,10 @@ func Test_apiGet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := apiGet(tt.args.url)
+			client := &MyHTTPClient{
+				&http.Client{},
+			}
+			got, err := client.apiGet(tt.args.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("apiGet() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -192,7 +197,7 @@ func Test_checkAlerts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if len(*tt.want) == 0 {
-				clear(tt.want)
+				clearObjectValues(tt.want)
 			}
 			err := checkAlerts(tt.args.apiResp, tt.args.noPlaybookAlerts)
 			fmt.Printf("error is %v", err)

@@ -13,6 +13,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+type MyHTTPClient struct {
+	*http.Client
+}
+
 type Alert struct {
 	Labels struct {
 		AlertName string `json:"alertname,omitempty"`
@@ -81,8 +85,7 @@ var (
 	}, []string{"code", "handler", "method"})
 )
 
-func apiGet(url string) ([]byte, error) {
-	client := &http.Client{}
+func (client *MyHTTPClient) apiGet(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
@@ -105,13 +108,13 @@ func apiGet(url string) ([]byte, error) {
 
 }
 
-func clear(v interface{}) {
+func clearObjectValues(v interface{}) {
 	p := reflect.ValueOf(v).Elem()
 	p.Set(reflect.Zero(p.Type()))
 }
 
 func checkAlerts(apiResp []byte, noPlaybookAlerts *[]AlertRule) error {
-	clear(noPlaybookAlerts)
+	clearObjectValues(noPlaybookAlerts)
 	alertrules := AlertRuleApiResponse{}
 	err := json.Unmarshal(apiResp, &alertrules)
 	if err != nil {
@@ -129,8 +132,8 @@ func checkAlerts(apiResp []byte, noPlaybookAlerts *[]AlertRule) error {
 	return nil
 }
 
-func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]AlertRule) {
-	apiResp, err := apiGet(url)
+func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]AlertRule, client *MyHTTPClient) {
+	apiResp, err := client.apiGet(url)
 	if err != nil {
 		log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
 	}
@@ -143,7 +146,7 @@ func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]
 	}
 	ticker := time.NewTicker(queryInterval * time.Minute)
 	for range ticker.C {
-		apiResp, err := apiGet(url)
+		apiResp, err := client.apiGet(url)
 		if err != nil {
 			log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
 		}
@@ -156,7 +159,10 @@ func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]
 
 func main() {
 	var noPlaybookAlerts []AlertRule
-	go recordMetrics(1, os.Getenv("PROMETHEUS_RULES_API_URL"), &noPlaybookAlerts)
+	client := &MyHTTPClient{
+		&http.Client{},
+	}
+	go recordMetrics(1, os.Getenv("PROMETHEUS_RULES_API_URL"), &noPlaybookAlerts, client)
 	r := prometheus.NewRegistry()
 	r.MustRegister(alertsNoPlaybook)
 	r.MustRegister(httpRequestsTotal)
