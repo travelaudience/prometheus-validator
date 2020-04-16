@@ -1,0 +1,25 @@
+version: 2.1
+
+orbs:
+  ta-go: travelaudience/go@0.3
+
+executors:
+  golang-executor:
+    docker:
+      - image: circleci/golang:1.13
+    environment:
+      GO111MODULE: "on"
+
+workflows:
+  build_and_test:
+    jobs:
+      - ta-go/checks:
+          exec: golang-executor
+      - ta-go/test_and_coverage:
+          exec: golang-executor
+      - ta-go/build:
+          exec: golang-executor
+          name: compile_code
+          requires:
+            - ta-go/checks
+            - ta-go/test_and_coverage

@@ -17,8 +17,8 @@ EXPOSE 8080
 
 COPY --from=build /go/src/github.com/travelaudience/prometheus-validator/util/util /
 
-# ENV PROMETHEUS_URL="http://localhost:9090"
-ENV PROMETHEUS_URL="http://prometheus-operated.monitoring.svc.cluster.local:9090"
+ENV PROMETHEUS_URL="http://localhost:9090"
+# ENV PROMETHEUS_URL="http://prometheus-operated.monitoring.svc.cluster.local:9090"
 
 CMD ["/util"]
 

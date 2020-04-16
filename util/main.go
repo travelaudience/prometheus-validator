@@ -13,8 +13,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type MyHTTPClient struct {
-	*http.Client
+type PrometheusClient struct {
+	httpclient *http.Client
+	url        string
 }
 
 type Alert struct {
@@ -67,32 +68,23 @@ type AlertRuleApiResponse struct {
 
 var (
 	alertsNoPlaybook = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "alerts_without_playbook",
+		Name: "prometheus_validator_alerts_without_playbook",
 		Help: "The alerts that don't have a Playbook link"},
 		[]string{
-			"alert",
-			"owner",
+			"alert_name",
+			"alert_owner",
 		},
 	)
-	httpRequestsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "http_requests_total",
-		Help: "Count of all HTTP requests",
-	}, []string{"code", "method"})
-
-	httpRequestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "http_request_duration_seconds",
-		Help: "Duration of all HTTP requests",
-	}, []string{"code", "handler", "method"})
 )
 
-func (client *MyHTTPClient) apiGet(url string) ([]byte, error) {
-	req, err := http.NewRequest("GET", url, nil)
+func (client *PrometheusClient) apiGet() ([]byte, error) {
+	req, err := http.NewRequest("GET", client.url, nil)
 
 	if err != nil {
 		return []byte{}, err
 	}
 	req.Header.Set("Accept", "application/json")
-	resp, err := client.Do(req)
+	resp, err := client.httpclient.Do(req)
 
 	if err != nil {
 		return []byte{}, err
@@ -132,58 +124,42 @@ func checkAlerts(apiResp []byte, noPlaybookAlerts *[]AlertRule) error {
 	return nil
 }
 
-func recordMetrics(queryInterval time.Duration, url string, noPlaybookAlerts *[]AlertRule, client *MyHTTPClient) {
-	apiResp, err := client.apiGet(url)
+func recordMetrics(queryInterval time.Duration, noPlaybookAlerts *[]AlertRule, client *PrometheusClient) {
+	apiResp, err := client.apiGet()
 	if err != nil {
-		log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
+		log.Fatalf("Couldn't read apiResp from url %s : %v. \n", client.url, err)
 	}
 	err = checkAlerts(apiResp, noPlaybookAlerts)
 	if err != nil {
 		log.Fatalf("Couldn't marshel the json . %v", err)
 	}
 	for _, alert := range *noPlaybookAlerts {
-		alertsNoPlaybook.With(prometheus.Labels{"alert": alert.Name, "owner": alert.Labels.Owner}).Set(1)
+		alertsNoPlaybook.With(prometheus.Labels{"alert_name": alert.Name, "alert_owner": alert.Labels.Owner}).Set(1)
 	}
 	ticker := time.NewTicker(queryInterval * time.Minute)
 	for range ticker.C {
-		apiResp, err := client.apiGet(url)
+		apiResp, err := client.apiGet()
 		if err != nil {
-			log.Fatalf("Couldn't read apiResp from url %s : %v. \n", url, err)
+			log.Fatalf("Couldn't read apiResp from url %s : %v. \n", client.url, err)
 		}
 		err = checkAlerts(apiResp, noPlaybookAlerts)
 		for _, alert := range *noPlaybookAlerts {
-			alertsNoPlaybook.With(prometheus.Labels{"alert": alert.Name, "owner": alert.Labels.Owner}).Set(1)
+			alertsNoPlaybook.With(prometheus.Labels{"alert_name": alert.Name, "alert_owner": alert.Labels.Owner}).Set(1)
 		}
 	}
 }
 
 func main() {
 	var noPlaybookAlerts []AlertRule
-	client := &MyHTTPClient{
+	url := os.Getenv("PROMETHEUS_URL") + "/api/v1/rules?type=alert"
+	client := &PrometheusClient{
 		&http.Client{},
+		url,
 	}
-	go recordMetrics(1, os.Getenv("PROMETHEUS_URL")+"/api/v1/rules?type=alert", &noPlaybookAlerts, client)
-	r := prometheus.NewRegistry()
-	r.MustRegister(alertsNoPlaybook)
-	r.MustRegister(httpRequestsTotal)
-	r.MustRegister(httpRequestDuration)
+	go recordMetrics(1, &noPlaybookAlerts, client)
 
-	foundHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Hello from example application."))
-	})
-	notfoundHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-	})
+	prometheus.MustRegister(alertsNoPlaybook)
 
-	foundChain := promhttp.InstrumentHandlerDuration(
-		httpRequestDuration.MustCurryWith(prometheus.Labels{"handler": "found"}),
-		promhttp.InstrumentHandlerCounter(httpRequestsTotal, foundHandler),
-	)
-
-	http.Handle("/", foundChain)
-	http.Handle("/err", promhttp.InstrumentHandlerCounter(httpRequestsTotal, notfoundHandler))
-
-	http.Handle("/metrics", promhttp.HandlerFor(r, promhttp.HandlerOpts{}))
+	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

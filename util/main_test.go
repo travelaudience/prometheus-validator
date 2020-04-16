@@ -21,9 +21,8 @@ func apiResp(file string) []byte {
 func Test_recordMetrics(t *testing.T) {
 	type args struct {
 		queryInterval    time.Duration
-		url              string
 		noPlaybookAlerts *[]AlertRule
-		client           *MyHTTPClient
+		client           *PrometheusClient
 	}
 	tests := []struct {
 		name string
@@ -33,7 +32,7 @@ func Test_recordMetrics(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recordMetrics(tt.args.queryInterval, tt.args.url, tt.args.noPlaybookAlerts, tt.args.client)
+			recordMetrics(tt.args.queryInterval, tt.args.noPlaybookAlerts, tt.args.client)
 		})
 	}
 }
@@ -67,10 +66,11 @@ func Test_apiGet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := &MyHTTPClient{
+			client := &PrometheusClient{
 				&http.Client{},
+				tt.args.url,
 			}
-			got, err := client.apiGet(tt.args.url)
+			got, err := client.apiGet()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("apiGet() error = %v, wantErr %v", err, tt.wantErr)
 				return
