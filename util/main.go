@@ -143,6 +143,9 @@ func recordMetrics(queryInterval time.Duration, noPlaybookAlerts *[]AlertRule, c
 			log.Fatalf("Couldn't read apiResp from url %s : %v. \n", client.url, err)
 		}
 		err = checkAlerts(apiResp, noPlaybookAlerts)
+		if err != nil {
+			log.Fatalf("Couldn't marshel the json . %v", err)
+		}
 		for _, alert := range *noPlaybookAlerts {
 			alertsNoPlaybook.With(prometheus.Labels{"alert_name": alert.Name, "alert_owner": alert.Labels.Owner}).Set(1)
 		}

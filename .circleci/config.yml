@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   ta-go: travelaudience/go@0.3
+  go: circleci/go@0.2.0
 
 executors:
   golang-executor:
@@ -10,16 +11,28 @@ executors:
     environment:
       GO111MODULE: "on"
 
+jobs:
+  go_test:
+    parameters:
+        exec:
+          description: Executor to use for this job (as described in the executor of this orb, this requires CC_TEST_REPORTER_ID env var)
+          type: executor
+    executor: << parameters.exec >>
+    steps:
+      - checkout
+      - go/load-cache
+      - ta-go/test
+
 workflows:
   build_and_test:
     jobs:
       - ta-go/checks:
           exec: golang-executor
-      - ta-go/test_and_coverage:
+      - go_test:
           exec: golang-executor
       - ta-go/build:
           exec: golang-executor
           name: compile_code
           requires:
             - ta-go/checks
-            - ta-go/test_and_coverage
+            - go_test
