@@ -30,9 +30,3 @@ workflows:
           exec: golang-executor
       - go_test:
           exec: golang-executor
-      - ta-go/build:
-          exec: golang-executor
-          name: compile_code
-          requires:
-            - ta-go/checks
-            - go_test
