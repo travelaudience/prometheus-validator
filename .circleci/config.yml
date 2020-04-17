@@ -1,8 +1,6 @@
 version: 2.1
 
-deploy_tag_filter: &deploy_tag_filter
-  branches:
-    ignore: /.*/
+deploy_tag_filter: &build_filter
   tags:
     only: /.*/
 
@@ -49,11 +47,11 @@ workflows:
     jobs:
       - ta-go/checks:  # run static analysis against the code
           exec: golang-executor
-          filters: *deploy_tag_filter
+          filters: *build_filter
       - go_test:
-          filters: *deploy_tag_filter
+          filters: *build_filter
       - docker_build:
           requires:
             - ta-go/checks
             - go_test
-          filters: *deploy_tag_filter
+          filters: *build_filter
