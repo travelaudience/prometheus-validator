@@ -4,29 +4,38 @@ orbs:
   ta-go: travelaudience/go@0.3
   go: circleci/go@0.2.0
 
-executors:
-  golang-executor:
+jobs:
+  go_test:
     docker:
       - image: circleci/golang:1.13
     environment:
       GO111MODULE: "on"
-
-jobs:
-  go_test:
-    parameters:
-        exec:
-          description: Executor to use for this job (as described in the executor of this orb, this requires CC_TEST_REPORTER_ID env var)
-          type: executor
-    executor: << parameters.exec >>
     steps:
       - checkout
       - go/load-cache
-      - ta-go/test
+      - go/mod-download
+      - go/save-cache
+      - go/test:
+          covermode: atomic
+          race: true
+
+  docker_build:
+    machine: true
+    steps:
+      - checkout
+      - run: docker build -t quay.io/travelaudience/prometheus-validator:${CIRCLE_TAG:-latest} .
+      - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD quay.io
+      - run: docker push quay.io/travelaudience/prometheus-validator:${CIRCLE_TAG:-latest}
 
 workflows:
   build_and_test:
     jobs:
-      - ta-go/checks:
-          exec: golang-executor
-      - go_test:
-          exec: golang-executor
+      - ta-go/checks  # run static analysis against the code
+      - go_test
+      - docker_build:
+          requires:
+            - ta-go/checks
+            - go_test
+          filters:
+            tags:
+              only: /.*/
