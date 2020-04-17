@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   ta-go: travelaudience/go@0.3
-  go: circleci/go@0.2.0
+  go: circleci/go@1.1.1
 
 jobs:
   go_test:
