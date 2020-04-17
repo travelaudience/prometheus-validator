@@ -1,5 +1,11 @@
 version: 2.1
 
+build_filter: &build_filter
+  branches:
+    only: /.*/
+  tags:
+    only: /.*/
+
 orbs:
   ta-go: travelaudience/go@0.3
   go: circleci/go@1.1.1
@@ -36,11 +42,11 @@ workflows:
     jobs:
       - ta-go/checks:  # run static analysis against the code
           exec: golang-executor
-      - go_test
+          filters: *build_filter
+      - go_test:
+          filters: *build_filter
       - docker_build:
           requires:
             - ta-go/checks
             - go_test
-          filters:
-            tags:
-              only: /.*/
+          filters: *build_filter
