@@ -1,5 +1,11 @@
 version: 2.1
 
+deploy_tag_filter: &deploy_tag_filter
+  branches:
+    ignore: /.*/
+  tags:
+    only: /.*/
+
 orbs:
   ta-go: travelaudience/go@0.3
   go: circleci/go@1.1.1
@@ -41,6 +47,4 @@ workflows:
           requires:
             - ta-go/checks
             - go_test
-          filters:
-            tags:
-              only: /.*/
+          filters: *deploy_tag_filter
