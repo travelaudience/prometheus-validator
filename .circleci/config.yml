@@ -4,12 +4,16 @@ orbs:
   ta-go: travelaudience/go@0.3
   go: circleci/go@1.1.1
 
-jobs:
-  go_test:
+executors:
+  golang-executor:
     docker:
       - image: circleci/golang:1.13
     environment:
       GO111MODULE: "on"
+
+jobs:
+  go_test:
+    executor: golang-executor
     steps:
       - checkout
       - go/load-cache
@@ -30,7 +34,8 @@ jobs:
 workflows:
   build_and_test:
     jobs:
-      - ta-go/checks  # run static analysis against the code
+      - ta-go/checks:  # run static analysis against the code
+          exec: golang-executor
       - go_test
       - docker_build:
           requires:
