@@ -43,6 +43,15 @@ workflows:
       - ta-go/checks:  # run static analysis against the code
           exec: golang-executor
       - go_test
+
+
+  deploy:
+    jobs:
+      - ta-go/checks:  # run static analysis against the code
+          exec: golang-executor
+          filters: *deploy_tag_filter
+      - go_test:
+          filters: *deploy_tag_filter
       - docker_build:
           requires:
             - ta-go/checks
