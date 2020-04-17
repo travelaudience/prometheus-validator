@@ -1,6 +1,8 @@
 version: 2.1
 
-deploy_tag_filter: &build_filter
+build_filter: &build_filter
+  branches:
+    only: /.*/
   tags:
     only: /.*/
 
@@ -37,13 +39,6 @@ jobs:
 
 workflows:
   build_and_test:
-    jobs:
-      - ta-go/checks:  # run static analysis against the code
-          exec: golang-executor
-      - go_test
-
-
-  deploy:
     jobs:
       - ta-go/checks:  # run static analysis against the code
           exec: golang-executor
