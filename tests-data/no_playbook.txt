@@ -1,0 +1,1 @@
+{"status":"success","data":{"groups":[{"name":"general.rules","file":"file1.yaml","rules":[{"name":"TargetUp","query":"query3","duration":600,"labels":{"severity":"warning"},"annotations":{"message":"test message"},"alerts":[],"health":"ok","type":"alerting"}]}]}}
