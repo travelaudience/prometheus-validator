@@ -165,6 +165,8 @@ func Test_checkAlerts(t *testing.T) {
 						Description string "json:\"description,omitempty\""
 						Playbook    string "json:\"playbook,omitempty\""
 						PlayBook    string "json:\"play_book,omitempty\""
+						RunbookURL  string `json:"runbook_url,omitempty"`
+						Runbook     string `json:"runbook,omitempty"`
 						Summary     string "json:\"summary,omitempty\""
 					}{},
 					Alerts: []Alert{},

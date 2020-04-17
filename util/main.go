@@ -46,6 +46,8 @@ type AlertRule struct {
 		Description string `json:"description,omitempty"`
 		Playbook    string `json:"playbook,omitempty"`
 		PlayBook    string `json:"play_book,omitempty"`
+		RunbookURL  string `json:"runbook_url,omitempty"`
+		Runbook     string `json:"runbook,omitempty"`
 		Summary     string `json:"summary,omitempty"`
 	} `json:"annotations,omitempty"`
 	Alerts []Alert `json:"alerts"`
@@ -115,7 +117,7 @@ func checkAlerts(apiResp []byte, noPlaybookAlerts *[]AlertRule) error {
 
 	for _, group := range alertrules.Data.Groups {
 		for _, rule := range group.Rules {
-			noPlaybook := (rule.Type == "alerting") && (rule.Annotations.Playbook == "") && (rule.Annotations.PlayBook == "")
+			noPlaybook := (rule.Type == "alerting") && (rule.Annotations.Playbook == "") && (rule.Annotations.PlayBook == "") && (rule.Annotations.Runbook == "") && (rule.Annotations.RunbookURL == "")
 			if noPlaybook {
 				*noPlaybookAlerts = append(*noPlaybookAlerts, rule)
 			}
