@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func apiResp(file string) []byte {
@@ -17,24 +16,6 @@ func apiResp(file string) []byte {
 	}
 	fmt.Printf("r is: %s", r)
 	return r
-}
-func Test_recordMetrics(t *testing.T) {
-	type args struct {
-		queryInterval    time.Duration
-		noPlaybookAlerts *[]AlertRule
-		client           *PrometheusClient
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			recordMetrics(tt.args.queryInterval, tt.args.noPlaybookAlerts, tt.args.client)
-		})
-	}
 }
 
 func Test_apiGet(t *testing.T) {
