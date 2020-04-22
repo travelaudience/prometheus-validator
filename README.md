@@ -21,16 +21,16 @@ The image could be added as a Prometheus sidecontainer by using:
 Container config:
 
 ```yaml
-    containers:
-      - name: prometheus-validator
-        image: quay.io/travelaudience/prometheus-validator:0.1.2
-        ports:
-        - name: metrics
-          containerPort: 8080
-        command: ["/util"]
-        env:
-          - name: PROMETHEUS_URL
-            value: "http://localhost:9090"
+containers:
+  - name: prometheus-validator
+    image: quay.io/travelaudience/prometheus-validator:0.1.2
+    ports:
+      - name: metrics
+        containerPort: 8080
+    command: ["/util"]
+    env:
+      - name: PROMETHEUS_URL
+        value: "http://localhost:9090"
 ```
 After deploying it as a side-container, you will need to make sure the metrics are being scraped by Prometheus.
 This can be done by:
