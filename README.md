@@ -10,9 +10,9 @@ The app will serve the following metrics under `/metrics` endpoint:
 Example:
 `prometheus_validator_alerts_without_playbook{alert_name="ClockSkewDetected",alert_owner=""}`
 
-The app is built into a docker image and served by `quay.io/travelaudience/prometheus-validator:[git-tag]`
+### The app is built into a docker image and served by `quay.io/travelaudience/prometheus-validator:[git-tag]`
 
-### How to use the app docker image?
+### How to use the docker image?
 The image could be added as a Prometheus sidecontainer by using:
 1. Prometheus helm chart `server.sidecarContainers`
 2. Prometheus Operator helm chart `prometheus.prometheusSpec.containers`
@@ -37,5 +37,5 @@ This can be done by:
 2. Prometheus ScrapeConfigs.
 
 
-#### Issue tracker:
+### Issue tracker:
 https://github.com/travelaudience/prometheus-validator/issues
