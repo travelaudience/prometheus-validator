@@ -40,3 +40,12 @@ This can be done by:
 
 ### Issue tracker:
 https://github.com/travelaudience/prometheus-validator/issues
+
+
+## Contributing
+
+Contributions are welcomed! Read the [Contributing Guide](CONTRIBUTING.md) for more information.
+
+## Licensing
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
