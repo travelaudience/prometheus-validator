@@ -11,7 +11,7 @@ Example:
 `prometheus_validator_alerts_without_playbook{alert_name="ClockSkewDetected",alert_owner=""}`
 
 #### The app is built into a docker image and served by
-    `quay.io/travelaudience/prometheus-validator:[git-tag]`
+    quay.io/travelaudience/prometheus-validator:[git-tag]
 
 ### How to use the docker image?
 The image could be added as a Prometheus sidecontainer by using:
